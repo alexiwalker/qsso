@@ -6,7 +6,6 @@ fn main() {
 
     let mut default_region:String = "ap-southeast-2".to_string();
 
-
     let h = match home::home_dir() {
         None => {
             "".to_string()
@@ -26,7 +25,6 @@ fn main() {
         .arg("sso")
         .arg("login");
 
-
     let clear_cache_result = fs::remove_dir_all(cli_cache.clone());
 
     match clear_cache_result {
@@ -34,13 +32,16 @@ fn main() {
             fs::create_dir(cli_cache.clone()).unwrap();
         }
         Err(e) => {
-            println!("{}",e);
-            return;
+
+            let _ = fs::create_dir(cli_cache.clone());
+            println!("clear cache result: {}",e);
+            // return;
         }
     }
 
     let args: Vec<String> = env::args().collect();
     if args.len() == 2 {
+
         let prof = args[1].clone();
         chosen_profile = prof.clone();
         command
@@ -55,7 +56,6 @@ fn main() {
         let _ = fs::write(defaults_file, str);
         return;
     }
-
     if args.len() == 4 && args[1] == "default" {
         let profile = args[2].clone();
         let region = args[3].clone();
@@ -63,7 +63,6 @@ fn main() {
         let _ = fs::write(defaults_file, str);
         return;
     }
-
     if args.len()==1 {
         let default_profile = fs::read_to_string(defaults_file.clone());
         match default_profile {
@@ -76,17 +75,17 @@ fn main() {
                 .arg("--profile")
                 .arg(chosen_profile.clone());
             }
-            Err(_) => {}
+            Err(e) => {
+                println!("error: {:?}",e);
+                println!("use sso default <profile> <region>. Must have configured aws cli sso first (aws configure sso). See https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html and use the name chosen during configure sso")
+            }
         }
     }
 
     let local: DateTime<Local> = Local::now();
 
-
     let res = command.output().unwrap();
     let out = String::from_utf8(res.stdout);
-
-    println!("{}",out.unwrap().clone());
 
     let mut aws_configure_call_to_refresh_cache = std::process::Command::new("aws");
     let cache_command = aws_configure_call_to_refresh_cache
@@ -97,7 +96,6 @@ fn main() {
     let _ = cache_command.output().unwrap();
 
     let directory_contents = fs::read_dir(cli_cache.clone());
-
 
 
     let cached_file_to_use = match directory_contents {
