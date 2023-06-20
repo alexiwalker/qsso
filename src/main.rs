@@ -1,6 +1,7 @@
 use std::ffi::{ OsString};
 use serde::{Serialize, Deserialize};
 use std::{env, fs};
+use std::string::FromUtf8Error;
 use chrono::prelude::*;
 fn main() {
 
@@ -86,6 +87,12 @@ fn main() {
 
     let res = command.output().unwrap();
     let out = String::from_utf8(res.stdout);
+    match out {
+        Ok(o) => {
+            println!("{}",o);
+        }
+        Err(_) => {}
+    }
 
     let mut aws_configure_call_to_refresh_cache = std::process::Command::new("aws");
     let cache_command = aws_configure_call_to_refresh_cache

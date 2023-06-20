@@ -159,16 +159,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kzsso2"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "home",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.141"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -224,6 +214,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b63bdb0cd06f1f4dedf69b254734f9b45af66e4a031e42a7480257d9898b435"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "qsso"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "home",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
