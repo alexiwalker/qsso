@@ -1,11 +1,36 @@
 use std::ffi::{ OsString};
 use serde::{Serialize, Deserialize};
 use std::{env, fs};
+use std::env::VarError;
 use std::string::FromUtf8Error;
 use chrono::prelude::*;
 fn main() {
 
     let mut default_region:String = "ap-southeast-2".to_string();
+
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() == 2 && args[1] == "install" {
+        let path = env::var("PATH");
+        match path {
+            Ok(p) => {
+                let paths = p.split(":");
+                for x in paths {
+                    let s = x.to_string();
+                    println!("path entry: {}",s)
+
+                }
+            }
+            Err(e) => {
+                println!("err: {}",e)
+            }
+        }
+
+
+        return;
+    }
+
+
 
     let h = match home::home_dir() {
         None => {
@@ -19,6 +44,11 @@ fn main() {
     let credentials_file = format!("{h}/.aws/config");
     let defaults_file = format!("{h}/.aws/qsso_default");
     let cli_cache = format!("{h}/.aws/cli/cache");
+
+
+    dbg!(&credentials_file);
+    dbg!(&defaults_file);
+    dbg!(&cli_cache);
 
     let mut chosen_profile = "default".to_string();
     let mut sso_login_command = std::process::Command::new("aws");
@@ -40,7 +70,6 @@ fn main() {
         }
     }
 
-    let args: Vec<String> = env::args().collect();
     if args.len() == 2 {
 
         let prof = args[1].clone();
@@ -104,6 +133,7 @@ fn main() {
 
     let directory_contents = fs::read_dir(cli_cache.clone());
 
+    dbg!(&directory_contents);
 
     let cached_file_to_use = match directory_contents {
         Ok(contents) => {
@@ -139,10 +169,21 @@ fn main() {
         }
     };
 
+    dbg!(&cached_file_to_use);
+
     match cached_file_to_use {
         Ok(file_name) => {
 
-            let serialized = fs::read_to_string(file_name).unwrap();
+
+            dbg!(&file_name);
+            let serialized = fs::read_to_string(file_name);
+
+            dbg!(&serialized);
+
+            let serialized = serialized.unwrap();
+
+
+
             let sso_credentials: Root = serde_json::from_str(&serialized).unwrap();
             let creds = sso_credentials.credentials;
 
