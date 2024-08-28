@@ -201,26 +201,41 @@ fn main() {
             {region_string}\r\n\
             #automatically updated by qsso at {}\r\n\
             ", local);
-            // println!("credString: \r\n{}", profileString);
 
+
+            dbg!(&profile_string);
+            // println!("credString: \r\n{}", profileString);
+            dbg!(&credentials_file_content);
             let mut new_file:Vec<String> = vec![];
+
+            let mut has_default_set = false;
 
             match credentials_file_content {
                 Ok(string) => {
 
+                    dbg!(&string);
+
                     let lines = string.lines();
                     let mut is_default_profile = false;
                     for line in lines {
+
+                        dbg!(&line);
+
                         if line == "[default]" {
                             new_file.push(line.to_string());
                             new_file.push(profile_string.clone());
                             is_default_profile =true;
+
+                            has_default_set=true;
                         } else if line.starts_with("[") && line.ends_with("]"){
                             new_file.push(line.to_string());
                             is_default_profile =false
                         } else if !is_default_profile {
                             new_file.push(line.to_string())
                         }
+
+                        dbg!(&new_file);
+
                         //skip lines from the default profile until we reach a new profile
                     }
 
@@ -231,10 +246,19 @@ fn main() {
                 }
             }
 
+            if !has_default_set {
+                let default_profile = format!("[default]\r\n{profile_string}\r\n");
+                new_file.push(default_profile);
+            }
+
+            dbg!(&new_file);
+
             let full_string = new_file.join("\r\n");
+            dbg!(&full_string);
 
             let success = fs::write(credentials_file, full_string);
 
+            dbg!(&success);
             match success {
                 Ok(_) => {}
                 Err(err) => {
