@@ -10,22 +10,19 @@ fn main() {
 
     let args: Vec<String> = env::args().collect();
 
-    if args.len() == 2 && args[1] == "install" {
+    if args.len() == 2 && args[1] == "install.sh" {
         let path = env::var("PATH");
         match path {
             Ok(p) => {
                 let paths = p.split(":");
                 for x in paths {
                     let s = x.to_string();
-                    println!("path entry: {}",s)
-
                 }
             }
             Err(e) => {
                 println!("err: {}",e)
             }
         }
-
 
         return;
     }
@@ -44,11 +41,6 @@ fn main() {
     let credentials_file = format!("{h}/.aws/config");
     let defaults_file = format!("{h}/.aws/qsso_default");
     let cli_cache = format!("{h}/.aws/cli/cache");
-
-
-    dbg!(&credentials_file);
-    dbg!(&defaults_file);
-    dbg!(&cli_cache);
 
     let mut chosen_profile = "default".to_string();
     let mut sso_login_command = std::process::Command::new("aws");
@@ -93,6 +85,7 @@ fn main() {
         let _ = fs::write(defaults_file, str);
         return;
     }
+
     if args.len()==1 {
         let default_profile = fs::read_to_string(defaults_file.clone());
         match default_profile {
@@ -100,7 +93,10 @@ fn main() {
                 let parts:Vec<&str> = str.split(",").collect();
                 chosen_profile = parts[0].clone().to_string();
                 default_region=parts[1].clone().to_string();
-                println!("Using default profile: {}. Change with sso default <name>", str.clone());
+
+                let profile_display = format!("{chosen_profile}, region: {default_region}");
+
+                println!("Using default profile: {}. Change with sso default <name>", profile_display);
                 command
                 .arg("--profile")
                 .arg(chosen_profile.clone());
@@ -116,11 +112,8 @@ fn main() {
 
     let res = command.output().unwrap();
     let out = String::from_utf8(res.stdout);
-    match out {
-        Ok(o) => {
-            println!("{}",o);
-        }
-        Err(_) => {}
+    if let Ok(o) = out {
+        println!("{}",o);
     }
 
     let mut aws_configure_call_to_refresh_cache = std::process::Command::new("aws");
@@ -133,7 +126,7 @@ fn main() {
 
     let directory_contents = fs::read_dir(cli_cache.clone());
 
-    dbg!(&directory_contents);
+    // dbg!(&directory_contents);
 
     let cached_file_to_use = match directory_contents {
         Ok(contents) => {
@@ -169,16 +162,16 @@ fn main() {
         }
     };
 
-    dbg!(&cached_file_to_use);
+    // dbg!(&cached_file_to_use);
 
     match cached_file_to_use {
         Ok(file_name) => {
 
 
-            dbg!(&file_name);
+            // dbg!(&file_name);
             let serialized = fs::read_to_string(file_name);
-
-            dbg!(&serialized);
+            // 
+            // dbg!(&serialized);
 
             let serialized = serialized.unwrap();
 
@@ -203,9 +196,9 @@ fn main() {
             ", local);
 
 
-            dbg!(&profile_string);
+            // dbg!(&profile_string);
             // println!("credString: \r\n{}", profileString);
-            dbg!(&credentials_file_content);
+            // dbg!(&credentials_file_content);
             let mut new_file:Vec<String> = vec![];
 
             let mut has_default_set = false;
@@ -213,13 +206,13 @@ fn main() {
             match credentials_file_content {
                 Ok(string) => {
 
-                    dbg!(&string);
+                    // dbg!(&string);
 
                     let lines = string.lines();
                     let mut is_default_profile = false;
                     for line in lines {
 
-                        dbg!(&line);
+                        // dbg!(&line);
 
                         if line == "[default]" {
                             new_file.push(line.to_string());
@@ -233,8 +226,6 @@ fn main() {
                         } else if !is_default_profile {
                             new_file.push(line.to_string())
                         }
-
-                        dbg!(&new_file);
 
                         //skip lines from the default profile until we reach a new profile
                     }
@@ -251,14 +242,14 @@ fn main() {
                 new_file.push(default_profile);
             }
 
-            dbg!(&new_file);
-
+            // dbg!(&new_file);
+            // 
             let full_string = new_file.join("\r\n");
-            dbg!(&full_string);
+            // dbg!(&full_string);
 
             let success = fs::write(credentials_file, full_string);
 
-            dbg!(&success);
+            // dbg!(&success);
             match success {
                 Ok(_) => {}
                 Err(err) => {
